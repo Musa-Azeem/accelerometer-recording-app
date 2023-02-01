@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.wear.compose.foundation.*
 import androidx.wear.compose.material.*
 import androidx.wear.compose.material.R
+import com.example.har.presentation.components.SessionChip
 import com.example.har.presentation.ui.util.ReportFullyDrawn
 import com.google.android.horologist.compose.navscaffold.scrollableColumn
 
@@ -40,16 +41,8 @@ fun LandingScreen(
                 // Signify we have drawn the content of the first screen
                 ReportFullyDrawn()
 
-                Chip(
-                    onClick = onClickButton,
-                    label = {
-                        Text(
-                            "Hello",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
+                SessionChip(
+                    onClick = onClickButton
                 )
             }
         }

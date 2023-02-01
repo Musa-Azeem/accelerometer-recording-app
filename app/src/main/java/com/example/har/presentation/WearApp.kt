@@ -1,5 +1,6 @@
 package com.example.har.presentation
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -126,11 +127,11 @@ fun WearApp(
                     val scalingLazyListState = scalingLazyListState(it)
                     val focusRequester = remember { FocusRequester() }
 
-
                     LandingScreen(
                         scalingLazyListState = scalingLazyListState,
                         focusRequester = focusRequester,
                         onClickButton = {
+                            Log.d("001","hello")
 //                            swipeDismissableNavController.navigate(Screen.SomeOtherRoute.route)
                         }
                     )

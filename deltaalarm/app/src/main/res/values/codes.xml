@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="CHECK_MOTION_BROADCAST">com.example.delta_alarm.CHECK_MOTION_ALARM</string>
+</resources>

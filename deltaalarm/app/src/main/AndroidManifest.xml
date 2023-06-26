@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
 
     <uses-feature android:name="android.hardware.type.watch" />
 
@@ -12,10 +15,10 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
+
         <uses-library
             android:name="com.google.android.wearable"
             android:required="true" />
-
         <!--
                Set to true if your app is Standalone, that is, it does not require the handheld
                app to run.
@@ -36,10 +39,8 @@
             </intent-filter>
         </activity>
 
-        <service
-            android:name=".presentation.CheckMotionJobService"
-            android:permission="android.permission.BIND_JOB_SERVICE" />
-
+        <receiver android:name=".presentation.CheckMotionAlarmReceiver" />
+        <receiver android:name=".presentation.MainActivity$MainCheckMotionAlarmReceiver" />
     </application>
 
 </manifest>

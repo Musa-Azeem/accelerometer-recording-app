@@ -19,7 +19,7 @@ class CheckMotionAlarmManager(context: Context){
 
         // This alarm should wake device up from sleep, but can only be set to go off once every 15 minutes
         // while device is in doze mode
-//        alarmManager.setExactAndAllowWhileIdle()
+        // alarmManager.setExactAndAllowWhileIdle()
 
         // This alarm should go off when in doze mode
         alarmManager.setAlarmClock(
@@ -40,12 +40,11 @@ class CheckMotionAlarmManager(context: Context){
 
     }
 
-    fun test() {
-        if (alarmManager.nextAlarmClock != null) {
-            Log.d("Deltaalarm", "Next Alarm: ${(alarmManager.nextAlarmClock.triggerTime - System.currentTimeMillis())*1e-3}")
-        }
-        else {
-            Log.d("Deltaalarm", "No alarm")
+    fun test() : Double {
+        return if (alarmManager.nextAlarmClock != null) {
+            (alarmManager.nextAlarmClock.triggerTime - System.currentTimeMillis())*1e-3
+        } else {
+            0.0
         }
     }
 }

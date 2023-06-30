@@ -1,4 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="CHECK_MOTION_BROADCAST">com.example.delta_alarm.CHECK_MOTION_ALARM</string>
+    <string name="STOP_LOGGING_BROADCAST">com.example.delta_alarm.STOP_LOGGING_BROADCAST</string>
+    <string name="MOTION_DETECTION_BROADCAST">com.example.delta_alarm.MOTION_DETECTION_BROADCAST</string>
+
+    <string name="MotionDetected">MotionDetected</string>
+    <string name="IsLoggingAcc">IsLoggingAcc</string>
 </resources>

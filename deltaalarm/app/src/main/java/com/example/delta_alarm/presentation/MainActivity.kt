@@ -33,7 +33,7 @@ var mainActivityIsActive = false
 class MainActivity : ComponentActivity() {
     private lateinit var mViewModel: MainViewModel
 
-    private val CHECK_MOTION_INTERVAL_MINS: Float = .5F
+    private val CHECK_MOTION_INTERVAL_MINS: Float = 5F
     private lateinit var checkMotionAlarm: CheckMotionAlarmManager
     private var checkMotionReceiver: BroadcastReceiver = MainCheckMotionAlarmReceiver()
     private var motionDetectionReceiver: BroadcastReceiver = MotionDetectionReceiver()
@@ -185,6 +185,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        accelHandler.handleOnDestroy()
         unregisterReceiver(checkMotionReceiver)
         unregisterReceiver(motionDetectionReceiver)
     }

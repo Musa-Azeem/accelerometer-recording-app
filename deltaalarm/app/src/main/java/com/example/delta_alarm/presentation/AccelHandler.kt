@@ -9,6 +9,7 @@ import android.hardware.SensorManager
 import android.util.Log
 import com.example.delta_alarm.R
 import java.io.File
+import java.io.FileOutputStream
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.math.pow
@@ -35,10 +36,10 @@ class AccelHandler(
     private val loggingAccTimer = Timer()
     private var loggingAcc = false
 
-    private var accFile = File(dir, "acc.csv")
+    private var accFileStream = FileOutputStream(File(dir, "acc.csv"))
 
     fun init() {
-        accFile.appendText("x,y,z")
+        accFileStream.write("x,y,z".toByteArray())
     }
 
     private fun register() {
@@ -51,6 +52,11 @@ class AccelHandler(
 
     private fun unregister() {
         sensorManager.unregisterListener(this)
+    }
+
+    fun handleOnDestroy() {
+        unregister()
+        accFileStream.close()
     }
 
     // Function to check if currently sensing any motion - asynchronous
@@ -145,7 +151,7 @@ class AccelHandler(
         // If logging mode, write values to file
         if (loggingAcc) {
             Log.v("DeltaAcc", "Recording Acc - x: ${event.values[0]}")
-            accFile.appendText("$x,$y,$z")
+            accFileStream.write("$x,$y,$z".toByteArray())
         }
     }
 

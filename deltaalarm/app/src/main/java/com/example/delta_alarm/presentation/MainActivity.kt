@@ -34,6 +34,10 @@ class MainActivity : ComponentActivity() {
     private lateinit var mViewModel: MainViewModel
 
     private val CHECK_MOTION_INTERVAL_MINS: Float = 5F
+    private val CHECK_MOTION_TIMEOUT_SECS: Int = 60
+    private val LOG_ACCEL_TIMEOUT_SEC: Int = 60 * 30
+
+//    private val CHECK_MOTION_INTERVAL_MINS: Float = 0.5F
     private lateinit var checkMotionAlarm: CheckMotionAlarmManager
     private var checkMotionReceiver: BroadcastReceiver = MainCheckMotionAlarmReceiver()
     private var motionDetectionReceiver: BroadcastReceiver = MotionDetectionReceiver()
@@ -51,36 +55,61 @@ class MainActivity : ComponentActivity() {
 
         mViewModel = MainViewModel()
 
+        // Initialize Log file
         dir = File(this.filesDir, startTimeStr)
         dir.mkdir()
         logFile = File(dir, "Log.txt")
         logFile.appendText("real_time_ms,event\n")
 
-        // Set alarm
+        // Get AlarmManager Instance
         checkMotionAlarm = CheckMotionAlarmManager(this)
-        setAlarm(CHECK_MOTION_INTERVAL_MINS)
-
-        // Start all broadcast receivers
-        startListening()
 
         // Initialize SensorHandler
         accelHandler = AccelHandler(
             applicationContext,
             getSystemService(SENSOR_SERVICE) as SensorManager,
             mViewModel,
-            dir
+            dir,
+            loggingAccTimeoutSecs = LOG_ACCEL_TIMEOUT_SEC,
+            checkMotionTimeoutSecs = CHECK_MOTION_TIMEOUT_SECS
         )
 
         // To ensure screen turns on on alarm ring
         setShowWhenLocked(true)
         setTurnScreenOn(true)
 
+        // Start all broadcast receivers
+        startListening()
+
+        // Start cycle of checking motion/logging acc at certain step
+        startCycle(state = 2)
+
         setContent {
             WearApp(mViewModel)
         }
     }
+    private fun startCycle(state: Int) {
+        if (state == 0) {
+            // Start in sleep mode, with alarm set to go off after 5 minutes
+            setAlarm(CHECK_MOTION_INTERVAL_MINS)
+        }
+        else if (state == 1) {
+            // Start in checking motion mode
+            logFile.appendText("${Calendar.getInstance().timeInMillis},CheckingForMotion\n")
+            mViewModel.updateText("Checking For Motion")
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+            accelHandler.checkForMotion()
+        }
+        else if (state == 2) {
+            // Start in logging accelerometer mode
+            window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) // lock screen on
+            mViewModel.updateText("Motion Detected - Starting Logging")
+            accelHandler.startLogging()
+        }
+    }
+
     private fun setAlarm(delayMins: Float) {
-        checkMotionAlarm.setAlarm(delayMins, "")
+        checkMotionAlarm.setAlarm(delayMins)
     }
     private fun startListening() {
         val filter = IntentFilter(getString(R.string.CHECK_MOTION_BROADCAST))
@@ -99,6 +128,7 @@ class MainActivity : ComponentActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             Log.d("Deltaalarm", "Main Alarm ring")
             logFile.appendText("${Calendar.getInstance().timeInMillis},CheckingForMotion\n")
+            mViewModel.updateText("Checking For Motion")
 
             vibrate()
 
@@ -116,7 +146,6 @@ class MainActivity : ComponentActivity() {
             window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON) // lock screen on
             accelHandler.checkForMotion()   // start check for motion process
         }
-
     }
 
     inner class MotionDetectionReceiver : BroadcastReceiver() {
@@ -136,12 +165,19 @@ class MainActivity : ComponentActivity() {
                 // Keep wake lock and, if not already logging acc,
                 if (!accelIsLogging) {
                     // start logging accelerometer data
+                    mViewModel.updateText("Motion Detected - Starting Logging")
                     accelHandler.startLogging()
+                }
+                else {
+                    mViewModel.updateText("Motion Detected - Continuing Logging")
+                    accelHandler.continueLogging()
                 }
             }
             else {
                 logFile.appendText("${Calendar.getInstance().timeInMillis},NoMotionDetected\n")
+                mViewModel.updateText("No Motion Detected")
                 if (accelIsLogging) {
+                    mViewModel.updateText("No Motion Detected - Stopping Logging")
                     // if accel is still logging, stop it
                     accelHandler.stopLogging()
                 }
@@ -157,6 +193,8 @@ class MainActivity : ComponentActivity() {
         override fun onReceive(context: Context, intent: Intent) {
             // When logging timer goes off, check again if any motion
             logFile.appendText("${Calendar.getInstance().timeInMillis},CheckingForMotion\n")
+            vibrate()
+            mViewModel.updateText("Checking for motion")
             accelHandler.checkForMotion()
         }
     }

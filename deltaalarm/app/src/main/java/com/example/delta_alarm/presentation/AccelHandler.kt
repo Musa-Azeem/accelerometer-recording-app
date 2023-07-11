@@ -12,6 +12,7 @@ import android.util.Log
 import com.example.delta_alarm.R
 import java.io.File
 import java.io.FileOutputStream
+import java.util.Calendar
 import java.util.Timer
 import java.util.TimerTask
 import kotlin.math.pow
@@ -20,7 +21,9 @@ class AccelHandler(
     private val context: Context,
     private val sensorManager: SensorManager,
     private val mViewModel: MainViewModel,
-    private val dir: File
+    private val dir: File,
+    private val loggingAccTimeoutSecs: Int = 60 * 30, // 30 minutes
+    private val checkMotionTimeoutSecs: Int = 60
 ) : SensorEventListener {
 
     // Accelerometer Parameters
@@ -28,19 +31,17 @@ class AccelHandler(
     private val samplingPeriodMicroseconds = (1e6 / samplingRateHz).toInt()
 
     // Logging Accelerometer Mode
-    private val loggingAccTimeoutSecs = 60 * 30 // 30 minutes
     private val loggingAccTimer = Timer()
     private var loggingAcc = false
     private var accFileStream = FileOutputStream(File(dir, "acc.csv"))
 
     // Checking for Motion Mode
-    private val checkMotionTimeoutSecs = 60
     private var checkMotionTimer = Timer()
     private var checkingMotion = false
     private var motionDetectedByTrigger = false
 
     init {
-        accFileStream.write("x,y,z".toByteArray())
+        accFileStream.write("time_ns,x,y,z,realtime_ms\n".toByteArray())
     }
 
     private fun register() {
@@ -107,7 +108,6 @@ class AccelHandler(
              */
 
             Log.d("Deltaalarm", "AccelHandler - Check Motion Timer Task End")
-            mViewModel.updateText("AccelHandler - Check Motion Timer Task End")
 
             // Send broadcast to MainActivity with result and current logging state
             val i = Intent(context.getString(R.string.MOTION_DETECTION_BROADCAST))
@@ -141,6 +141,14 @@ class AccelHandler(
         loggingAcc = true
 
         // Start timer - when timer ends, MainActivity will be notified
+        loggingAccTimer.schedule(StopLoggingAccTimerTask(), (loggingAccTimeoutSecs * 1e3).toLong())
+    }
+    fun continueLogging() {
+        /*
+         * Function to continue logging when motion is detected while already logging
+         * It only starts the stop logging acc timer, since object is already in loggin state
+         */
+
         loggingAccTimer.schedule(StopLoggingAccTimerTask(), (loggingAccTimeoutSecs * 1e3).toLong())
     }
     fun stopLogging() {
@@ -184,7 +192,7 @@ class AccelHandler(
         // If logging mode, write values to file
         if (loggingAcc) {
             Log.v("DeltaAcc", "Recording Acc - x: ${event.values[0]}")
-            accFileStream.write("$x,$y,$z".toByteArray())
+            accFileStream.write("${event.timestamp},$x,$y,$z,${Calendar.getInstance().timeInMillis}\n".toByteArray())
         }
     }
 

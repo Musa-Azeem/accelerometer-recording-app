@@ -12,9 +12,8 @@ class CheckMotionAlarmManager(context: Context){
     private val context: Context = context
     private val alarmManager: AlarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    fun setAlarm(delayMins: Float, dir: String) {
+    fun setAlarm(delayMins: Float) {
         var intent = Intent(context, CheckMotionAlarmReceiver::class.java)
-        intent.putExtra("dir", dir)
         var pi = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         // This alarm should wake device up from sleep, but can only be set to go off once every 15 minutes
